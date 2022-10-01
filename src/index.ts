@@ -1,6 +1,12 @@
-const token = process.env["token"];
-const {Client, GatewayIntentBits, Interaction} = require("discord.js");
-const cron = require("cron");
+import { Collection, Interaction} from "discord.js"
+import { RequestListener, ServerResponse } from "http"
+
+const token = process.env["token"]
+const {Client, GatewayIntentBits} = require("discord.js")
+const cron = require("cron")
+const fs = require("node:fs")
+const path = require("node:path")
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,17 +16,19 @@ const client = new Client({
     ]
 })
 
-const ExamDates = [
-    "The exams for Tuesday 4/10 are\nEnglish Language P1 (1 h 50 m)\nPhysical Science (1 h 30 m)",
-    "The exams for Wednesday 5/10 are\nMathematics P1 (1 h 15 m)\nMother Tongue P1 (1 h 30 m)",
-    "The exams for Thursday 6/10 are\nEnglish Language P2 (1 h 50 m)\nGeography (1 h 30 m)",
-    "The exams for Friday 7/10 are\nMother Tongue P2 (1 h 30 m)\nHistory (1 h 30 m)",
-    "The exams for Monday 10/10 are\nLiterature (1 h 40 m)\nEnglish Language Listening Comprehension (1 h)",
-    "The exams for Tuesday 11/10 are\nLife Science (1 h 30 m)\nMathematics P2 (1 h 15 m)\nMother Tongue Listening Comprehension (30 m)"
-]
+client.commands = new Collection()
+const commandFiles = fs.readdirSync(__dirname + "/commands").filter((file: any) => file.endsWith(".js"))
+
+for (const file of commandFiles) {
+    const filePath = path.join(__dirname + "/commands", file)
+    const command = require(filePath)
+
+    client.commands.set(command.data.name, command);
+}
+
 process.env.TZ = "Asia/Singapore"
 
-function countDown(): String {
+export function countDown(): String {
     const currentDate = new Date()
     const examStart = new Date(2022, 9, 4)
     const examEnd = new Date(2022, 9, 12)
@@ -45,34 +53,22 @@ client.on("ready", () => {
     reminderCron.start()
 })
 
-client.on("interactionCreate", async (interaction: any) => {
+client.on("interactionCreate", async (interaction: Interaction) => {
     if(!interaction.isChatInputCommand()) return;
 
-    const {commandName, options} = interaction;
+    const command = client.commands.get(interaction.commandName);
 
-    if(commandName === "days"){
-        await interaction.reply(countDown())
-    }else if(commandName === "info"){
-        const dayNum = options.getInteger("day")
-        if(dayNum){
-            if(dayNum > 6){
-                await interaction.reply("Please enter a day less than 6.")
-            }else{
-                await interaction.reply(ExamDates[dayNum - 1])
-            }
-        }else{
-            if(new Date().getMonth() == 9){
-                const monthDay = new Date().getDate()
-                await interaction.reply(ExamDates[monthDay - 1])
-            }else{
-                await interaction.reply(ExamDates.join("\n"))
-            }
-        }
-    } else if(commandName === "test"){
-        await interaction.reply(countDown())
+    if(!command) return
+
+    try{
+        await command.execute(interaction);
+    }catch(error){
+        console.error(error)
+        await interaction.reply("My creator is stupid and let an error slip through")
     }
 })
 
-client.login(token);
+client.login("ODkwNTQ1NjA2OTk5ODM0NjQ1.GWyt2a._rPv_iJ7_2c82N8tL6uk9UQmayD2QUdyDhSuRQ");
 
-require('http').createServer((req: any, res: any) => res.end('.')).listen(3000)
+require('http').createServer((_req: RequestListener, res: ServerResponse) => res.end('.')).listen(3000)
+
