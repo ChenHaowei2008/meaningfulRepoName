@@ -29,7 +29,7 @@ function countDown(): String {
     const daysLeftEnd = Math.round(Math.abs((examEnd.getTime() - currentDate.getTime())) / (24 * 60 * 60 * 1000))
 
     if(daysLeftStart > 0){
-        return `There are only ${daysLeftStart} days until the exams start.`
+        return `There are only ${daysLeftStart} days until the exams start. <@&1025024319564283987>`
     } 
     return `Rejoice! There are only ${daysLeftEnd} until the exams end.`
 }
@@ -58,16 +58,18 @@ client.on("interactionCreate", async (interaction: any) => {
             if(dayNum > 6){
                 await interaction.reply("Please enter a day less than 6.")
             }else{
-                await interaction.reply(ExamDates[dayNum + 1])
+                await interaction.reply(ExamDates[dayNum - 1])
             }
         }else{
             if(new Date().getMonth() == 9){
                 const monthDay = new Date().getDate()
-                await interaction.reply(ExamDates[monthDay + 1])
+                await interaction.reply(ExamDates[monthDay - 1])
             }else{
                 await interaction.reply(ExamDates.join("\n"))
             }
         }
+    } else if(commandName === "test"){
+        await interaction.reply(countDown())
     }
 })
 
