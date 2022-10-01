@@ -68,7 +68,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     }
 })
 
-client.login("ODkwNTQ1NjA2OTk5ODM0NjQ1.GWyt2a._rPv_iJ7_2c82N8tL6uk9UQmayD2QUdyDhSuRQ");
+client.login(token)
 
 require('http').createServer((_req: RequestListener, res: ServerResponse) => res.end('.')).listen(3000)
 
