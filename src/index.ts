@@ -5,7 +5,6 @@ const token = process.env["token"]
 const {Client, GatewayIntentBits} = require("discord.js")
 const cron = require("cron")
 const fs = require("node:fs")
-const path = require("node:path")
 
 const client = new Client({
     intents: [
@@ -17,10 +16,10 @@ const client = new Client({
 })
 
 client.commands = new Collection()
-const commandFiles = fs.readdirSync(__dirname + "/commands").filter((file: any) => file.endsWith(".js"))
+const commandFiles = fs.readdirSync(`${__dirname}/commands`).filter((file: any) => file.endsWith(".js"))
 
 for (const file of commandFiles) {
-    const filePath = path.join(__dirname + "/commands", file)
+    const filePath = `${__dirname}/commands/${file}`
     const command = require(filePath)
 
     client.commands.set(command.data.name, command);
